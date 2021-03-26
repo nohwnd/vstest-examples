@@ -17,8 +17,11 @@ namespace PartioningTests
     {
         static async Task Main()
         {
+            // in the next 60 lines I am just building the project and resolving the vstest console
+            // this is specific to this approach, and is not mandatory to be done this way, 
+            // I am just trying to make the project portable
             Console.WriteLine("Running dotnet --version");
-            var dotnetVersion = "3.1.408"; // RunCommand("dotnet", "--version").Trim();
+            var dotnetVersion = RunCommand("dotnet", "--version").Trim();
             Console.WriteLine(dotnetVersion);
             Console.WriteLine("Running dotnet --list-sdks");
             var sdks = RunCommand("dotnet", "--list-sdks")
@@ -33,7 +36,7 @@ namespace PartioningTests
 
             Console.WriteLine($"Sdk path is: {sdkPath}");
 
-            var vstestConsolePath = @"C:\p\vstest\artifacts\Debug\netcoreapp2.1\vstest.console.dll"; // Path.Combine(sdkPath, dotnetVersion, "vstest.console.dll");
+            var vstestConsolePath = Path.Combine(sdkPath, dotnetVersion, "vstest.console.dll");
             Console.WriteLine($"Test console path is: {vstestConsolePath}");
 
 
@@ -58,17 +61,21 @@ namespace PartioningTests
             var consoleParameters = new ConsoleParameters { LogFilePath = logPath };
 
             // make the timeout shorter to see errors faster in case we do something wrong
-            // and the runner won't start
+            // and the runner won't start, you can look at the logs after the run, or use 
+            // DebugView++ to see them in real time
             Environment.SetEnvironmentVariable("VSTEST_CONNECTION_TIMEOUT", "20");
+
+            // THIS is where the interesting code starts :) We make a console wrapper, 
+            // and point it at our console path, this can be either vstest.console.exe
+            // if we are taking it from VS installation, or from Microsoft.TestPlaform
+            // nuget package,
+            // or vstest.console.dll if we are using the one from dotnet sdk.
             var wrapper = new VsTestConsoleWrapper(vstestConsolePath, consoleParameters);
 
             Console.WriteLine($"Discovering tests.");
             var discoveryHandler = new DiscoveryHandler();
 
-            if (!File.Exists(@"C:\t\PartioningTests\TestProject1\bin\Debug\netcoreapp3.1\TestProject1.deps.json")) {
-                throw new Exception("file does not exist!");
-            }
-
+            // Discover all tests from the assembly.
             // Make sure you don't provide null for the runsettings.
             // Make sure your dll paths are not sorrounded by whitespace.
             // Use the sync api.
@@ -77,22 +84,17 @@ namespace PartioningTests
             var tests = discoveryHandler.DiscoveredTests;
             Console.WriteLine($"Found {tests.Count} tests.");
 
-
+            
             var half = tests.Count / 2;
 
+            // split them to two batches
             var firstHalf = tests.Take(half).ToList();
-            var secondHalf = tests.Skip(half).Take(1).ToList();
-
-            // rem
-            var thirdHalf = tests.Skip(half + 1).Take(1).ToList();
-
+            var secondHalf = tests.Skip(half).ToList();
 
             var run1Handler = new RunHandler();
             var run2Handler = new RunHandler();
-            
-            // rem
-            var run3Handler = new RunHandler();
 
+            // Running each batch
             // Make sure you provide provide at least the root tag for the runsettings.
             wrapper.RunTests(firstHalf, "<RunSettings></RunSettings>", run1Handler);
             Console.WriteLine("First half:");
@@ -102,50 +104,23 @@ namespace PartioningTests
             Console.WriteLine("Second half:");
             run2Handler.TestResults.ForEach(WriteTestResult);
 
-
+            // Trying it with async
             run1Handler.TestResults.Clear();
             run2Handler.TestResults.Clear();
-            //rem
-            run3Handler.TestResults.Clear();
-
 
             // Make sure you provide provide at least the root tag for the runsettings.
-            var t1 = Task.Run(() => wrapper.RunTests(firstHalf, "<RunSettings></RunSettings>", run1Handler));
-            var t2 = Task.Run(() => wrapper.RunTests(secondHalf, "<RunSettings></RunSettings>", run2Handler));
-            var t3 = Task.Run(() => wrapper.RunTests(thirdHalf, "<RunSettings></RunSettings>", run3Handler));
-
-            Task.WaitAll(t1, t2, t3);
-            Console.WriteLine("task non-async but async");
-            Console.WriteLine("First half:");
-            run1Handler.TestResults.ForEach(WriteTestResult);
-            Console.WriteLine("Second half:");
-            run2Handler.TestResults.ForEach(WriteTestResult);
-            Console.WriteLine("third half async:");
-            run3Handler.TestResults.ForEach(WriteTestResult);
-
-            run1Handler.TestResults.Clear();
-            run2Handler.TestResults.Clear();
-            //rem
-            run3Handler.TestResults.Clear();
-
-            Console.WriteLine(Stopwatch.GetTimestamp());
             var run1 = wrapper.RunTestsAsync(firstHalf, "<RunSettings></RunSettings>", run1Handler);
-            // there is debounce for those requests, so the second will get merged with the first one comes 
-            // fast enough after the first one
+            // there is a bug that will report using one of the handlers when the requests come too close together
+            // this won't happen for third request. BUT it should not matter to you if you use the same handler for all 
+            // batches as it is usual.
             var run2 = wrapper.RunTestsAsync(secondHalf, "<RunSettings></RunSettings>", run2Handler);
             await Task.WhenAll(run1, run2);
-            var run3 = wrapper.RunTestsAsync(secondHalf, "<RunSettings></RunSettings>", run3Handler);
-            await Task.WhenAll(run1, run2, run3);
 
 
             Console.WriteLine("First half async:");
             run1Handler.TestResults.ForEach(WriteTestResult);
             Console.WriteLine("Second half async:");
             run2Handler.TestResults.ForEach(WriteTestResult);
-
-            //rem
-            Console.WriteLine("third half async:");
-            run3Handler.TestResults.ForEach(WriteTestResult);
 
             Console.WriteLine("Done.");
             Console.ReadLine();

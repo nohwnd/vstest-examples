@@ -10,7 +10,6 @@ namespace TestProject1
         [TestMethod]
         public void TestMethod1()
         {
-            throw new Exception(Stopwatch.GetTimestamp().ToString());
         }
 
         [TestMethod]
