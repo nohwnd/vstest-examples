@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31119.371
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PartioningTests", "PartioningTests\PartioningTests.csproj", "{62932BE2-0FF5-4352-BE14-1467A708B20C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject1", "TestProject1\TestProject1.csproj", "{CEE71070-FF22-4000-84A8-17F22056524E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{62932BE2-0FF5-4352-BE14-1467A708B20C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62932BE2-0FF5-4352-BE14-1467A708B20C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62932BE2-0FF5-4352-BE14-1467A708B20C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62932BE2-0FF5-4352-BE14-1467A708B20C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEE71070-FF22-4000-84A8-17F22056524E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEE71070-FF22-4000-84A8-17F22056524E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEE71070-FF22-4000-84A8-17F22056524E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEE71070-FF22-4000-84A8-17F22056524E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E4B96259-CBF2-4206-9F1D-8E439B59EBD4}
+	EndGlobalSection
+EndGlobal
